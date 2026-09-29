@@ -1,0 +1,228 @@
+{
+  "info": {
+    "name": "QuoteFlow",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "token", "value": "" },
+    { "key": "clientId", "value": "" },
+    { "key": "itemId", "value": "" },
+    { "key": "quoteId", "value": "" },
+    { "key": "invoiceId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/health" }
+    },
+    {
+      "name": "Register",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Y Labs Staff\",\n  \"email\": \"staff2@ylabs.local\",\n  \"password\": \"ylabs@2026\"\n}"
+        },
+        "url": "{{baseUrl}}/api/auth/register"
+      }
+    },
+    {
+      "name": "Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const json = pm.response.json();",
+              "pm.collectionVariables.set('token', json.token);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@ylabs.local\",\n  \"password\": \"ylabs@2026\"\n}"
+        },
+        "url": "{{baseUrl}}/api/auth/login"
+      }
+    },
+    {
+      "name": "Me",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/api/auth/me"
+      }
+    },
+    {
+      "name": "List clients",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const rows = pm.response.json();",
+              "if (rows[0]) pm.collectionVariables.set('clientId', rows[0]._id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/api/clients"
+      }
+    },
+    {
+      "name": "Create client",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Test Client\",\n  \"phone\": \"+91 90000 00000\",\n  \"email\": \"test@example.com\",\n  \"address\": \"1 Sample Road\",\n  \"gstin\": \"29ABCDE1234F1Z5\"\n}"
+        },
+        "url": "{{baseUrl}}/api/clients"
+      }
+    },
+    {
+      "name": "List items",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const rows = pm.response.json();",
+              "if (rows[0]) pm.collectionVariables.set('itemId', rows[0]._id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/api/items"
+      }
+    },
+    {
+      "name": "Create quotation",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const json = pm.response.json();",
+              "pm.collectionVariables.set('quoteId', json._id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"client\": \"{{clientId}}\",\n  \"validUntil\": \"2026-11-30\",\n  \"notes\": \"Postman quote\",\n  \"status\": \"sent\",\n  \"lineItems\": [\n    { \"item\": \"{{itemId}}\", \"name\": \"Design consultation\", \"qty\": 2, \"rate\": 2500, \"gst\": 18 }\n  ]\n}"
+        },
+        "url": "{{baseUrl}}/api/quotations"
+      }
+    },
+    {
+      "name": "List quotations",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/api/quotations"
+      }
+    },
+    {
+      "name": "Patch quotation status",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"status\": \"accepted\"\n}" },
+        "url": "{{baseUrl}}/api/quotations/{{quoteId}}/status"
+      }
+    },
+    {
+      "name": "Quotation PDF",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/api/quotations/{{quoteId}}/pdf"
+      }
+    },
+    {
+      "name": "Convert to invoice",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const json = pm.response.json();",
+              "pm.collectionVariables.set('invoiceId', json._id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/api/quotations/{{quoteId}}/convert"
+      }
+    },
+    {
+      "name": "List invoices",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/api/invoices"
+      }
+    },
+    {
+      "name": "Add payment",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 1000,\n  \"date\": \"2026-09-29\",\n  \"mode\": \"upi\"\n}"
+        },
+        "url": "{{baseUrl}}/api/invoices/{{invoiceId}}/payments"
+      }
+    },
+    {
+      "name": "Invoice PDF",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/api/invoices/{{invoiceId}}/pdf"
+      }
+    },
+    {
+      "name": "Stats",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/api/stats"
+      }
+    }
+  ]
+}
